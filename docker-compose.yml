@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mongo:8
+    container_name: baro-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DB}
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: baro-web
+    depends_on:
+      - db
+    ports:
+      - "${WEB_PORT}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      MONGODB_URI: mongodb://db:27017/${MONGODB_DB}
+      MONGODB_DB: ${MONGODB_DB}
+      PORT: 3000
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+
+volumes:
+  mongo_data:
